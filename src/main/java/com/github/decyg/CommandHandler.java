@@ -1,15 +1,22 @@
 package com.github.decyg;
 
+import com.github.decyg.lavaplayer.GuildMusicManager;
+import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
+import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
+import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
+import sx.blah.discord.handle.obj.IChannel;
+import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.RequestBuffer;
 import sx.blah.discord.util.audio.AudioPlayer;
 
-import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -20,9 +27,15 @@ public class CommandHandler {
     // A static map of commands mapping from command string to the functional impl
     private static Map<String, Command> commandMap = new HashMap<>();
 
+    private static final AudioPlayerManager playerManager = new DefaultAudioPlayerManager();;;
+    private static final Map<Long, GuildMusicManager> musicManagers  = new HashMap<>();;
+
     // Statically populate the commandMap with the intended functionality
     // Might be better practise to do this from an instantiated objects constructor
     static {
+
+        AudioSourceManagers.registerRemoteSources(playerManager);
+        AudioSourceManagers.registerLocalSource(playerManager);
 
         // If the IUser that called this is in a voice channel, join them
         commandMap.put("joinvoice", (event, args) -> {
@@ -64,28 +77,15 @@ public class CommandHandler {
             // Turn the args back into a string separated by space
             String searchStr = String.join(" ", args);
 
-            // Get the AudioPlayer object for the guild
-            AudioPlayer audioP = AudioPlayer.getAudioPlayerForGuild(event.getGuild());
+            loadAndPlay(event.getChannel(), searchStr);
 
-            // Find a song given the search term
-            File[] songDir = new File("music")
-                    .listFiles(file -> file.getName().contains(searchStr));
 
-            if(songDir == null || songDir.length == 0)
-                return;
+        });
 
-            // Stop the playing track
-            audioP.clear();
+        // Skips the current song
+        commandMap.put("skipsong", (event, args) -> {
 
-            // Play the found song
-            try {
-                audioP.queue(songDir[0]);
-            } catch (IOException | UnsupportedAudioFileException e) {
-                BotUtils.sendMesasge(event.getChannel(), "There was an issue playing that song.");
-                e.printStackTrace();
-            }
-
-            BotUtils.sendMesasge(event.getChannel(), "Now playing: " + songDir[0].getName());
+            skipTrack(event.getChannel());
 
         });
 
@@ -124,8 +124,70 @@ public class CommandHandler {
 
     }
 
+    private static synchronized GuildMusicManager getGuildAudioPlayer(IGuild guild) {
+        long guildId = Long.parseLong(guild.getID());
+        GuildMusicManager musicManager = musicManagers.get(guildId);
+
+        if (musicManager == null) {
+            musicManager = new GuildMusicManager(playerManager);
+            musicManagers.put(guildId, musicManager);
+        }
+
+        guild.getAudioManager().setAudioProvider(musicManager.getAudioProvider());
+
+        return musicManager;
+    }
+
+    private static void loadAndPlay(final IChannel channel, final String trackUrl) {
+        GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+
+        playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
+            @Override
+            public void trackLoaded(AudioTrack track) {
+                BotUtils.sendMesasge(channel, "Adding to queue " + track.getInfo().title);
+
+                play(musicManager, track);
+            }
+
+            @Override
+            public void playlistLoaded(AudioPlaylist playlist) {
+                AudioTrack firstTrack = playlist.getSelectedTrack();
+
+                if (firstTrack == null) {
+                    firstTrack = playlist.getTracks().get(0);
+                }
+
+                BotUtils.sendMesasge(channel, "Adding to queue " + firstTrack.getInfo().title + " (first track of playlist " + playlist.getName() + ")");
+
+                play(musicManager, firstTrack);
+            }
+
+            @Override
+            public void noMatches() {
+                BotUtils.sendMesasge(channel, "Nothing found by " + trackUrl);
+            }
+
+            @Override
+            public void loadFailed(FriendlyException exception) {
+                BotUtils.sendMesasge(channel, "Could not play: " + exception.getMessage());
+            }
+        });
+    }
+
+    private static void play(GuildMusicManager musicManager, AudioTrack track) {
+
+        musicManager.scheduler.queue(track);
+    }
+
+    private static void skipTrack(IChannel channel) {
+        GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+        musicManager.scheduler.nextTrack();
+
+        BotUtils.sendMesasge(channel, "Skipped to next track.");
+    }
+
     @EventSubscriber
-    public void onMessageReceived(MessageReceivedEvent event){
+    public void onMessageReceived(MessageReceivedEvent event) {
 
         // Note for error handling, you'll probably want to log failed commands with a logger or sout
         // In most cases it's not advised to annoy the user with a reply incase they didn't intend to trigger a
