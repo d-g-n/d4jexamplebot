@@ -17,3 +17,8 @@ IntelliJ:
 Eclipse:
 
 ![Eclipse Example](http://i.imgur.com/v0mLql6.png)
+
+
+## How to build
+
+A fatjar can be built through maven simply by running the `mvn package` goal in whatever manner your IDE requires.
