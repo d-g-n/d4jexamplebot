@@ -70,7 +70,7 @@ public class CommandHandler {
             IVoiceChannel botVoiceChannel = event.getClient().getOurUser().getVoiceStateForGuild(event.getGuild()).getChannel();
 
             if(botVoiceChannel == null) {
-                BotUtils.sendMesasge(event.getChannel(), "Not in a voice channel, join one and then use joinvoice");
+                BotUtils.sendMessage(event.getChannel(), "Not in a voice channel, join one and then use joinvoice");
                 return;
             }
 
@@ -113,7 +113,7 @@ public class CommandHandler {
             builder.withFooterIcon("http://i.imgur.com/Ch0wy1e.png");
             builder.withFooterText("footerText");
             builder.withFooterIcon("http://i.imgur.com/TELh8OT.png");
-            builder.withThumbnail("http://i.imgur.com/7heQOCt.png");
+            builder.withThumbnail("http://www.gstatic.com/webp/gallery/1.webp");
 
             builder.appendDesc(" + appendDesc");
             builder.appendDescription(" + appendDescription");
@@ -144,7 +144,7 @@ public class CommandHandler {
         playerManager.loadItemOrdered(musicManager, trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                BotUtils.sendMesasge(channel, "Adding to queue " + track.getInfo().title);
+                BotUtils.sendMessage(channel, "Adding to queue " + track.getInfo().title);
 
                 play(musicManager, track);
             }
@@ -157,19 +157,19 @@ public class CommandHandler {
                     firstTrack = playlist.getTracks().get(0);
                 }
 
-                BotUtils.sendMesasge(channel, "Adding to queue " + firstTrack.getInfo().title + " (first track of playlist " + playlist.getName() + ")");
+                BotUtils.sendMessage(channel, "Adding to queue " + firstTrack.getInfo().title + " (first track of playlist " + playlist.getName() + ")");
 
                 play(musicManager, firstTrack);
             }
 
             @Override
             public void noMatches() {
-                BotUtils.sendMesasge(channel, "Nothing found by " + trackUrl);
+                BotUtils.sendMessage(channel, "Nothing found by " + trackUrl);
             }
 
             @Override
             public void loadFailed(FriendlyException exception) {
-                BotUtils.sendMesasge(channel, "Could not play: " + exception.getMessage());
+                BotUtils.sendMessage(channel, "Could not play: " + exception.getMessage());
             }
         });
     }
@@ -183,7 +183,7 @@ public class CommandHandler {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         musicManager.scheduler.nextTrack();
 
-        BotUtils.sendMesasge(channel, "Skipped to next track.");
+        BotUtils.sendMessage(channel, "Skipped to next track.");
     }
 
     @EventSubscriber
