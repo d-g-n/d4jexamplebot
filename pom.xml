@@ -28,7 +28,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.github.decyg.MainRunner</mainClass>     // specify your main class here
+                            <mainClass>com.github.decyg.MainRunner</mainClass><!--specify your main class here-->
                         </manifest>
                     </archive>
                 </configuration>
