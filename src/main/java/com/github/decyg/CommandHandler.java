@@ -205,8 +205,8 @@ public class CommandHandler {
         if(!argArray[0].startsWith(BotUtils.BOT_PREFIX))
             return;
 
-        // Extract the "command" part of the first arg out by just ditching the first character
-        String commandStr = argArray[0].substring(1);
+        // Extract the "command" part of the first arg out by ditching the amount of characters present in the prefix
+        String commandStr = argArray[0].substring(BotUtils.BOT_PREFIX.length());
 
         // Load the rest of the args in the array into a List for safer access
         List<String> argsList = new ArrayList<>(Arrays.asList(argArray));
