@@ -70,6 +70,9 @@ public class TrackScheduler {
   /**
    * Returns the queue for this scheduler. Adding to the head of the queue (index 0) does not automatically
    * cause it to start playing immediately. The returned collection is thread-safe and can be modified.
+   *
+   * @apiNote To iterate over this queue, use a synchronized block. For example:
+   * {@code synchronize (getQueue()) { // iteration code } }
    */
   public List<AudioTrack> getQueue() {
     return this.queue;
