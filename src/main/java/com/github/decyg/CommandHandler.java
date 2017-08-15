@@ -1,6 +1,7 @@
 package com.github.decyg;
 
 import com.github.decyg.lavaplayer.GuildMusicManager;
+import com.github.decyg.lavaplayer.TrackScheduler;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
@@ -15,7 +16,6 @@ import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IVoiceChannel;
 import sx.blah.discord.util.EmbedBuilder;
 import sx.blah.discord.util.RequestBuffer;
-import sx.blah.discord.util.audio.AudioPlayer;
 
 import java.util.*;
 
@@ -56,9 +56,9 @@ public class CommandHandler {
             if(botVoiceChannel == null)
                 return;
 
-            AudioPlayer audioP = AudioPlayer.getAudioPlayerForGuild(event.getGuild());
-
-            audioP.clear();
+            TrackScheduler scheduler = getGuildAudioPlayer(event.getGuild()).getScheduler();
+            scheduler.getQueue().clear();
+            scheduler.nextTrack();
 
             botVoiceChannel.leave();
 
@@ -176,12 +176,12 @@ public class CommandHandler {
 
     private static void play(GuildMusicManager musicManager, AudioTrack track) {
 
-        musicManager.scheduler.queue(track);
+        musicManager.getScheduler().queue(track);
     }
 
     private static void skipTrack(IChannel channel) {
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
-        musicManager.scheduler.nextTrack();
+        musicManager.getScheduler().nextTrack();
 
         BotUtils.sendMessage(channel, "Skipped to next track.");
     }
