@@ -125,7 +125,7 @@ public class CommandHandler {
     }
 
     private static synchronized GuildMusicManager getGuildAudioPlayer(IGuild guild) {
-        long guildId = Long.parseLong(guild.getID());
+        long guildId = guild.getLongID();
         GuildMusicManager musicManager = musicManagers.get(guildId);
 
         if (musicManager == null) {
