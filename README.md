@@ -1,5 +1,7 @@
 # d4jexamplebot
-A basic click-to-run bot using D4J.
+A basic click-to-run bot using D4J v2.
+
+Note: the v2 api is deprecated and not in active development anymore, this repo will be left for reference but as v3 is a total paradigm shift this bot will not be directly updated, please see the d4j docs for more information
 
 ## Import project
 ![IntelliJ import step 1](http://i.imgur.com/CggB7lG.png)
